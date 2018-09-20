@@ -1,34 +1,39 @@
 package myreact
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
-import scala.scalajs.js
+import org.scalajs.dom.ext.Color
+
 import scala.scalajs.js.annotation._
+import NativeComponents._
+
+import japgolly.scalajs.react.vdom.PackageBase._
+
 
 object Main {
-  // Say this is the Scala component you want to share
-  val scalaNativeComponent = ScalaComponent.builder[String]("")
-    .render_P(_ =>  ActivityIndicatorComponent())
-    .build
+  class Backend($: BackendScope[Unit, Boolean]) {
+    def render(s: Boolean) = {
+      val title = if (s) "Stop spinning" else "Start spinning"
+      val colour = if (s) Color.Blue else Color.Red
 
-  // This will be the props object used from JS-land
-  @js.native
-  trait JsProps extends js.Object {
-    val name: String
+      View(View.Props())(
+        Button(Button.Props(title, colour, $.modState(!_))),
+        ActivityIndicator(ActivityIndicator.Props(animating = s, size = ActivityIndicator.Size.Large))
+      )
+    }
+
   }
 
-  @JSExportTopLevel("ScalaNativeComponent")
-  val eportedComponent =
-    scalaNativeComponent
-      .cmapCtorProps[JsProps](_.name) // Change props from JS to Scala
-      .toJsComponent // Create a new, real JS component
-      .raw // Leave the nice Scala wrappers behind and obtain the underlying JS value
+  val scalaNativeApp = ScalaComponent.builder[Unit]("App")
+    .initialState(true)
+    .renderBackend[Backend]
+    .build
 
 
-  @JSImport("react-native", "ActivityIndicator")
-  @js.native
-  object ActivityIndicatorJs extends js.Object
-
-  val ActivityIndicatorComponent = JsComponent[Null, Children.None, Null](ActivityIndicatorJs)
+  @JSExportTopLevel("App")
+  val app =
+    scalaNativeApp
+      .toJsComponent
+      .raw
 
 }
+
