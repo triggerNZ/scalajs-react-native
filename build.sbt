@@ -1,3 +1,5 @@
+name := "scalajs-react-native"
+
 enablePlugins(ScalaJSPlugin)
 
 enablePlugins(ScalaJSBundlerPlugin)
