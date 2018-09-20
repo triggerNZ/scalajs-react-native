@@ -18,7 +18,7 @@ object Main {
       View(View.Props())(
         Button(Button.Props(title, colour, $.modState(!_))),
         ActivityIndicator(ActivityIndicator.Props(animating = s, size = ActivityIndicator.Size.Large)),
-        Text(Text.Props(Text.Style(color = Color.Green, fontSize = 14)))("I am green, and big", Text(Text.Props(Text.Style(color = Color.Blue, fontWeight = FontWeight.Bold)))(" but I am nested and bold and blue"))
+        Text(Text.Props(Text.Style(color = Color.Green, fontSize = 34)))("I am green, and big", Text(Text.Props(Text.Style(color = Color.Blue, fontWeight = FontWeight.Bold)))(" but I am nested and bold and blue"))
       )
     }
 

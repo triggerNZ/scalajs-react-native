@@ -102,7 +102,7 @@ object NativeComponents {
         val s = new js.Object().asInstanceOf[JsStyle]
         s.color = color.toString()
         s.fontWeight = fontWeight.toJs
-        println(s)
+        s.fontSize = fontSize
         s
       }
     }
@@ -111,6 +111,7 @@ object NativeComponents {
     trait JsStyle extends js.Object {
       var color: String
       var fontWeight: String
+      var fontSize: Int
     }
     def apply(p: Props)(children: VdomNode*) = Component(p)(children: _*)
   }
