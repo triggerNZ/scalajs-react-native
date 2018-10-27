@@ -10,7 +10,7 @@ npmDependencies in Compile ++= Seq(
     "react-native" -> "0.57.0")
 
 
-libraryDependencies += "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1-SNAPSHOT"
+libraryDependencies += "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1"
 
 
 val nativeProject = SettingKey[File]("native-project")
@@ -77,3 +77,5 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
+
+version := "0.0.1"
