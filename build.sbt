@@ -1,5 +1,9 @@
 name := "scalajs-react-native"
 
+version := "0.0.1-SNAPSHOT"
+
+organization := "triggernz"
+
 enablePlugins(ScalaJSPlugin)
 
 enablePlugins(ScalaJSBundlerPlugin)
@@ -77,5 +81,3 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
-
-version := "0.0.1"
