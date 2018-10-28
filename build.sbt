@@ -14,7 +14,7 @@ npmDependencies in Compile ++= Seq(
     "react-native" -> "0.57.0")
 
 
-libraryDependencies += "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1"
+libraryDependencies ++= Seq("com.github.japgolly.scalajs-react" %%% "core" % "1.3.1")
 
 
 val nativeProject = SettingKey[File]("native-project")
