@@ -6,14 +6,15 @@ import org.scalajs.dom.ext.Color
 import scala.scalajs.js.annotation._
 import japgolly.scalajs.react.vdom.PackageBase._
 import components.builtin._
-import apis.builtin.{Fetch, Geolocation}
+import apis.builtin.{AlertIos, Fetch, Geolocation, PermissionsAndroid}
 import triggernz.reactnative.core.Platform
+import triggernz.reactnative.core.Platform.RunningPlatform
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.JSON
 
-class Main(platform: Platform) {
+class Main(platform: RunningPlatform) {
   case class State(spinning: Boolean, position: Option[org.scalajs.dom.Position], text: Option[String]) {
     def toggleSpin: State = copy(spinning = !spinning)
   }
@@ -29,12 +30,16 @@ class Main(platform: Platform) {
         Text(Text.Props(Text.Style(color = Color.Green, fontSize = 34)))("I am green, and big", Text(Text.Props(Text.Style(color = Color.Blue, fontWeight = FontWeight.Bold)))(" but I am nested and bold and blue")),
         Text(Text.Props(Text.Style()))(s.position.fold("No location found") {pos => s"Location is ${pos.coords.latitude}, ${pos.coords.longitude}"}),
         Text(Text.Props(Text.Style()))(s.text.fold("fetching")(s => s)),
-        Text(Text.Props(Text.Style()))(s"Platform is ${platform}")
+        Text(Text.Props(Text.Style()))(s"Platform is ${platform}"),
+        Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform)))
       )
     }
 
     def startGps: Callback =
       Geolocation.watchPosition(pos => $.modState(_.copy(position = Some(pos)))).ret(())
+
+    def requestPermissions: Callback =
+      PermissionsAndroid.request("android.permission.ACCESS_FINE_LOCATION").toCallback(platform, Callback.empty)
 
     def fetchJson: Callback =
       Fetch.fetch("https://jsonplaceholder.typicode.com/todos/1").map {
@@ -48,7 +53,11 @@ class Main(platform: Platform) {
   val scalaNativeApp = ScalaComponent.builder[Unit]("App")
     .initialState(State(true, None, None))
     .renderBackend[Backend]
-    .componentDidMount(c => c.backend.startGps >> c.backend.fetchJson)
+    .componentDidMount {c =>
+      c.backend.requestPermissions >>
+      c.backend.startGps >>
+        c.backend.fetchJson
+    }
     .build
 
 
@@ -57,10 +66,9 @@ class Main(platform: Platform) {
 }
 
 object Main {
-   //todo: this won't fly. make functional
   val platform = Platform.get.getOrElse(sys.error("Failed reading platform"))
   val main = new Main(platform)
-  platform.onAndroid(apis.builtin.PermissionsAndroid.Raw.request("android.permission.ACCESS_FINE_LOCATION"))
+
   @JSExportTopLevel("App")
   val app =
     main.scalaNativeApp

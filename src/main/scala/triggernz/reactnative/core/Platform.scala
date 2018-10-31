@@ -1,5 +1,8 @@
 package triggernz.reactnative.core
 
+import japgolly.scalajs.react._
+import triggernz.reactnative.core.Platform.RunningPlatform
+
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 import scala.scalajs.js.|
@@ -8,8 +11,8 @@ import scala.util.Try
 sealed trait Platform {
   import Platform._
   def select[A](onIos: => A, onAndroid: => A): A = this match {
-    case _: Ios => onIos
-    case _: Android => onAndroid
+    case Ios => onIos
+    case Android => onAndroid
   }
 
   def onIos(block: => Unit) = select(block, ())
@@ -17,9 +20,10 @@ sealed trait Platform {
 }
 object Platform {
 
-  case class Ios(version: String) extends Platform
+  case object Ios extends Platform
+  case object Android extends Platform
 
-  case class Android(version: Int) extends Platform
+
 
   @JSImport("react-native", "Platform")
   @js.native
@@ -28,10 +32,37 @@ object Platform {
     val OS: String = js.native
   }
 
-  lazy val get: Option[Platform] = Try {
+  lazy val get: Option[RunningPlatform] = Try {
     Raw.OS match {
-      case "ios" => Ios(Raw.Version.asInstanceOf[String])
-      case "android" => Android(Raw.Version.asInstanceOf[Int])
+      case "ios" => Ios
+      case "android" => Android
     }
-  }.toOption
+  }.toOption.map(new RunningPlatform(_))
+
+  class RunningPlatform private[Platform] (val p: Platform)
+}
+
+class PlatformIO[P <: Platform, A]private (private val platform: P)(private val thunk: () => A) {
+  def toCallback(running: RunningPlatform, onOtherPlatforms: CallbackTo[A]): CallbackTo[A] =
+    if (running.p == platform)
+      CallbackTo.lift(thunk)
+    else
+      onOtherPlatforms
+
+  def flatMap[B](fn: A => PlatformIO[P, B]) = new PlatformIO[P, B](platform)(fn(thunk()).thunk)
+  def map[B](fn: A => B) = new PlatformIO[P, B](platform)(() => fn(thunk()))
+}
+
+class PlatformIoUnitExt[P <: Platform](val self: PlatformIO[P, Unit]) extends AnyVal {
+  def toCallbackOrEmpty(running: RunningPlatform) = self.toCallback(running, Callback.empty)
+}
+
+object PlatformIO {
+  type AndroidIO[A] = PlatformIO[Platform.Android.type, A]
+  type IosIO[A] = PlatformIO[Platform.Ios.type, A]
+
+  def AndroidIO[A](thunk: => A) = new PlatformIO(Platform.Android)(() => thunk)
+  def IosIO[A](thunk: => A) = new PlatformIO(Platform.Ios)(() => thunk)
+
+  implicit def ioUnitExt[P <: Platform](self: PlatformIO[P, Unit]) = new PlatformIoUnitExt[P](self)
 }

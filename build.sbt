@@ -14,8 +14,12 @@ npmDependencies in Compile ++= Seq(
     "react-native" -> "0.57.0")
 
 
-libraryDependencies ++= Seq("com.github.japgolly.scalajs-react" %%% "core" % "1.3.1")
+libraryDependencies ++= Seq(
+  "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1",
+   "com.lihaoyi" %%% "utest" % "0.6.5" % "test"
+)
 
+testFrameworks += new TestFramework("utest.runner.Framework")
 
 val nativeProject = SettingKey[File]("native-project")
 
