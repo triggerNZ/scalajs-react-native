@@ -1,4 +1,5 @@
 package triggernz.reactnative
+package demo
 
 import japgolly.scalajs.react._
 import org.scalajs.dom.ext.Color
@@ -55,7 +56,7 @@ class Main(platform: RunningPlatform) {
     .renderBackend[Backend]
     .componentDidMount {c =>
       c.backend.requestPermissions >>
-      c.backend.startGps >>
+        c.backend.startGps >>
         c.backend.fetchJson
     }
     .build
