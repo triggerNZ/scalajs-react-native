@@ -10,6 +10,7 @@ import components.builtin._
 import apis.builtin.{AlertIos, Fetch, Geolocation, PermissionsAndroid}
 import triggernz.reactnative.core.Platform
 import triggernz.reactnative.core.Platform.RunningPlatform
+import triggernz.reactnative.external.vectoricons.Icon
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,7 +33,8 @@ class Main(platform: RunningPlatform) {
         Text(Text.Props(Text.Style()))(s.position.fold("No location found") {pos => s"Location is ${pos.coords.latitude}, ${pos.coords.longitude}"}),
         Text(Text.Props(Text.Style()))(s.text.fold("fetching")(s => s)),
         Text(Text.Props(Text.Style()))(s"Platform is ${platform}"),
-        Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform)))
+        Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform))),
+        Icon(Icon.Props("rocket", size = 30, color = Some(Color("#900"))))
       )
     }
 

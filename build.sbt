@@ -73,6 +73,16 @@ lazy val core = project
     .settings(commonSettings: _*)
     .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
 
+lazy val external = project
+    .settings(
+      npmDependencies in Compile ++= Seq(
+        // requires: `react-native link react-native-vector-icons`
+        "react-native-vector-icons" -> "6.0.2"
+      )
+    )
+  .settings(commonSettings: _*)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+
 
 lazy val demo = project
   .settings(
@@ -88,6 +98,4 @@ lazy val demo = project
   )
   .settings(commonSettings: _*)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
-  .dependsOn(core)
-
-
+  .dependsOn(core, external)
