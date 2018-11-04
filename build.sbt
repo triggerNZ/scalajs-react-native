@@ -64,6 +64,7 @@ val commonSettings = Seq(
 
     libraryDependencies ++= Seq(
       "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1",
+      "com.pepegar" %%% "hammock-core" % "0.8.8-SNAPSHOT",
       "com.lihaoyi" %%% "utest" % "0.6.5" % "test"
     ),
     testFrameworks += new TestFramework("utest.runner.Framework")

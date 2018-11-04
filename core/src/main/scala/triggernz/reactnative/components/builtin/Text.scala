@@ -15,7 +15,7 @@ object Text {
   val Js = JsComponent[JsProps, Children.Varargs, Null](RawComponent)
   val Component = Js.cmapCtorProps[Props](_.toJs)
 
-  case class Props(style: Style) {
+  case class Props(style: Style = Style()) {
     def toJs: JsProps = {
       val p = new js.Object().asInstanceOf[JsProps]
       p.style = style.toJs
