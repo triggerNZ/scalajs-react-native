@@ -9,15 +9,18 @@ import japgolly.scalajs.react.vdom.PackageBase._
 import components.builtin._
 import apis.builtin.Geolocation
 import cats.effect.IO
-
 import apis.builtin.{AlertIos, Geolocation, PermissionsAndroid}
-import triggernz.reactnative.core.Platform
+import triggernz.reactnative.core.{Platform}
 import triggernz.reactnative.core.Platform.RunningPlatform
 import triggernz.reactnative.external.vectoricons.Icon
 
-
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scalajs.js
+
+@js.native
+@JSImport("./images/scala.jpeg", JSImport.Namespace)
+object scalaImage extends js.Object
 
 class Main(platform: RunningPlatform) {
   case class State(spinning: Boolean, position: Option[org.scalajs.dom.Position], text: Option[String]) {
@@ -38,7 +41,8 @@ class Main(platform: RunningPlatform) {
         Text(Text.Props(Text.Style()))(s"Platform is ${platform}"),
         Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform))),
         Icon(Icon.Props("rocket", size = 30, color = Some(Color("#900")))),
-        Text(Text.Props())(s.text.fold("fetching")(s => s))
+        Text(Text.Props())(s.text.fold("fetching")(s => s)),
+        Image(Image.Props(Image.Source.FromRequire(scalaImage)))
       )
     }
 
