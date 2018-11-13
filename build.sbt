@@ -64,15 +64,18 @@ val commonSettings = Seq(
 
     libraryDependencies ++= Seq(
       "com.github.japgolly.scalajs-react" %%% "core" % "1.3.1",
+      "com.github.japgolly.scalajs-react" %%% "ext-scalaz72" % "1.3.1",
       "com.pepegar" %%% "hammock-core" % "0.8.8-SNAPSHOT",
       "com.lihaoyi" %%% "utest" % "0.6.5" % "test"
     ),
-    testFrameworks += new TestFramework("utest.runner.Framework")
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
 )
 
 lazy val core = project
     .settings(commonSettings: _*)
     .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+
 
 lazy val external = project
     .settings(

@@ -10,7 +10,8 @@ import components.builtin._
 import apis.builtin.Geolocation
 import cats.effect.IO
 import apis.builtin.{AlertIos, Geolocation, PermissionsAndroid}
-import triggernz.reactnative.core.{Platform}
+import scalaz.{-\/, \/, \/-}
+import triggernz.reactnative.core.Platform
 import triggernz.reactnative.core.Platform.RunningPlatform
 import triggernz.reactnative.external.vectoricons.Icon
 
@@ -47,7 +48,10 @@ class Main(platform: RunningPlatform) {
     }
 
     def startGps: Callback =
-      Geolocation.watchPosition(pos => $.modState(_.copy(position = Some(pos)))).ret(())
+      Geolocation.watchPosition().map(\/.fromEither)({
+        case -\/(_) => Callback.empty
+        case \/-(pos) => $.modState(_.copy(position = Some(pos)))
+      }).void
 
     def requestPermissions: Callback =
       PermissionsAndroid.request("android.permission.ACCESS_FINE_LOCATION").toCallback(platform, Callback.empty)
@@ -76,8 +80,6 @@ class Main(platform: RunningPlatform) {
         c.backend.fetchJson
     }
     .build
-
-
 
 
 }
