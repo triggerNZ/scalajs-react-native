@@ -10,9 +10,13 @@ import components.builtin._
 import apis.builtin.Geolocation
 import cats.effect.IO
 import apis.builtin.{AlertIos, Geolocation, PermissionsAndroid}
+import org.scalajs.dom.Position
+import org.scalajs.dom.raw.PositionError
 import scalaz.{-\/, \/, \/-}
+import triggernz.reactnative.core.ContT._
 import triggernz.reactnative.core.Platform
 import triggernz.reactnative.core.Platform.RunningPlatform
+import triggernz.reactnative.demo.PosError.RawError
 import triggernz.reactnative.external.vectoricons.Icon
 
 import scala.util.{Failure, Success}
@@ -47,14 +51,11 @@ class Main(platform: RunningPlatform) {
       )
     }
 
-    def startGps: Callback =
-      Geolocation.watchPosition().map(\/.fromEither)({
-        case -\/(_) => Callback.empty
-        case \/-(pos) => $.modState(_.copy(position = Some(pos)))
-      }).void
-
-    def requestPermissions: Callback =
-      PermissionsAndroid.request("android.permission.ACCESS_FINE_LOCATION").toCallback(platform, Callback.empty)
+    def startGps = watchLocation.map(\/.fromEither) {
+      case -\/(RawError(e)) => println(s"error: ${e.message}"); $.modState(_.copy(position = None))
+      case -\/(PosError.NoPermission) => println(s"No location permissions!"); $.modState(_.copy(position = None))
+      case \/-(p) => $.modState(_.copy(position = Some(p)))
+    }
 
     def fetchJson: Callback = Callback {
       import hammock._
@@ -71,11 +72,25 @@ class Main(platform: RunningPlatform) {
     }
   }
 
+  def watchLocation: AsyncE[PosError, Position] = {
+    import cats.syntax.either._
+    for {
+      p <- PermissionsAndroid.request("android.permission.ACCESS_FINE_LOCATION").map(Right[PosError, String])
+      _ = println(p == Right(PermissionsAndroid.RESULTS.GRANTED))
+      _ = println(p)
+      loc <-
+        if (p == Right(PermissionsAndroid.RESULTS.GRANTED))
+          Geolocation.watchPosition().map(_.leftMap(PosError.RawError)).voidR
+        else
+          Async.point(Left(PosError.NoPermission))
+    } yield loc
+  }
+
+
   val scalaNativeApp = ScalaComponent.builder[Unit]("App")
     .initialState(State(true, None, None))
     .renderBackend[Backend]
     .componentDidMount {c =>
-      c.backend.requestPermissions >>
         c.backend.startGps >>
         c.backend.fetchJson
     }
@@ -93,4 +108,10 @@ object Main {
     main.scalaNativeApp
       .toJsComponent
       .raw
+}
+
+sealed trait PosError
+object PosError {
+  case object NoPermission extends PosError
+  case class RawError(e: PositionError) extends PosError
 }
