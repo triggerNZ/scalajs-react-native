@@ -75,11 +75,9 @@ class Main(platform: RunningPlatform) {
   def watchLocation: AsyncE[PosError, Position] = {
     import cats.syntax.either._
     for {
-      p <- PermissionsAndroid.request("android.permission.ACCESS_FINE_LOCATION").map(Right[PosError, String])
-      _ = println(p == Right(PermissionsAndroid.RESULTS.GRANTED))
-      _ = println(p)
+      p <- PermissionsAndroid.request(PermissionsAndroid.Permission.AccessFineLocation)
       loc <-
-        if (p == Right(PermissionsAndroid.RESULTS.GRANTED))
+        if (p == PermissionsAndroid.Result.Granted)
           Geolocation.watchPosition().map(_.leftMap(PosError.RawError)).voidR
         else
           Async.point(Left(PosError.NoPermission))

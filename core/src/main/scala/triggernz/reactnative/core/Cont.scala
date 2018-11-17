@@ -7,6 +7,8 @@ import scalaz.syntax.monad._
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
 
+import scala.scalajs.js.{Thenable, |}
+
 class ContT[R, M[_], +A](val run: (A => M[Unit]) => M[R])(implicit M: Monad[M]) {
   def apply(k: A => M[Unit]): M[R] = run(k)
 
@@ -36,6 +38,16 @@ object ContT {
   object AsyncE {
     def apply[E, V](run: (Either[E, V] => CallbackTo[Unit]) => CallbackTo[Unit]): AsyncE[E, V] =
       new ContT[Unit, CallbackTo, Either[E, V]](run)
+
+    def fromPromise[E, V](p: => js.Promise[V]): AsyncE[Any, V] = apply[Any, V] { cb =>
+      Callback {
+        val k = CallbackKleisli(cb)
+        val errHandler: js.Function1[Any, Unit | Thenable[Unit]] = { (e: Any) =>
+          k.contramap[Any](Left.apply).toJsFn(e)
+        }
+        p.`then`[Unit]({ v => k.contramap[V](Right.apply).toJsFn(v) }, errHandler)
+      }
+    }
   }
 
   object Async {
