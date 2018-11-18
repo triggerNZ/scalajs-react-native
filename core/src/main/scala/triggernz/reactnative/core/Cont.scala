@@ -39,6 +39,8 @@ object ContT {
     def apply[E, V](run: (Either[E, V] => CallbackTo[Unit]) => CallbackTo[Unit]): AsyncE[E, V] =
       new ContT[Unit, CallbackTo, Either[E, V]](run)
 
+    def point[E, V](ev: Either[E, V]): AsyncE[E, V] = apply(cb => cb(ev))
+
     def fromPromise[E, V](p: => js.Promise[V]): AsyncE[Any, V] = apply[Any, V] { cb =>
       Callback {
         val k = CallbackKleisli(cb)
