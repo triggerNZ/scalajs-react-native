@@ -1,5 +1,7 @@
 package triggernz.reactnative.core
 
+import cats.effect.IO
+
 import scalajs.js
 import japgolly.scalajs.react.CallbackTo
 import scalaz.Monad
@@ -48,6 +50,12 @@ object ContT {
           k.contramap[Any](Left.apply).toJsFn(e)
         }
         p.`then`[Unit]({ v => k.contramap[V](Right.apply).toJsFn(v) }, errHandler)
+      }
+    }
+
+    def fromIO[T](iot: IO[T]): AsyncE[Throwable, T] = AsyncE { cb =>
+      Callback {
+        iot.unsafeRunAsync(eort => cb(eort).runNow())
       }
     }
   }

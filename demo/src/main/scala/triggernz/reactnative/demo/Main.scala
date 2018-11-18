@@ -19,8 +19,6 @@ import triggernz.reactnative.core.Platform.RunningPlatform
 import triggernz.reactnative.demo.PosError.RawError
 import triggernz.reactnative.external.vectoricons.Icon
 
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scalajs.js
 
 @js.native
@@ -57,17 +55,17 @@ class Main(platform: RunningPlatform) {
       case \/-(p) => $.modState(_.copy(position = Some(p)))
     }
 
-    def fetchJson: Callback = Callback {
+    def fetchJson: Callback = {
       import hammock._
       import hammock.fetch.Interpreter
 
       implicit val interpretexr = Interpreter[IO](Interpreter.BrowserFetch)
 
-      Hammock
+      AsyncE.fromIO(Hammock
         .request(Method.GET, uri"https://jsonplaceholder.typicode.com/todos/1", Map.empty)
-        .exec[IO].unsafeToFuture().onComplete {
-          case Success(r) => $.modState(_.copy(text = Some(r.entity.content.toString))).runNow()
-          case Failure(f) => $.modState(_.copy(text = Some(f.getMessage))).runNow()
+        .exec[IO]) {
+          case Right(r) => $.modState(_.copy(text = Some(r.entity.content.toString)))
+          case Left(f) => $.modState(_.copy(text = Some(f.getMessage)))
         }
     }
   }
@@ -93,7 +91,6 @@ class Main(platform: RunningPlatform) {
         c.backend.fetchJson
     }
     .build
-
 
 }
 
