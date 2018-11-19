@@ -4,14 +4,13 @@ import cats.effect.IO
 
 import scalajs.js
 import japgolly.scalajs.react.CallbackTo
-import scalaz.Monad
 import scalaz.syntax.monad._
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
 
 import scala.scalajs.js.{Thenable, |}
 
-class ContT[R, M[_], +A](val run: (A => M[Unit]) => M[R])(implicit M: Monad[M]) {
+class ContT[R, M[_], +A](val run: (A => M[Unit]) => M[R])(implicit M: scalaz.Monad[M]) {
   def apply(k: A => M[Unit]): M[R] = run(k)
 
   def flatMap[B](k: A => ContT[R, M, B]): ContT[R, M, B] = {
@@ -61,7 +60,6 @@ object ContT {
   }
 
   object Async {
-
     def apply[V](run: (V => CallbackTo[Unit]) => CallbackTo[Unit]): Async[V] =
       new ContT[Unit, CallbackTo, V](run)
 
@@ -73,8 +71,16 @@ object ContT {
         p.`then`[Unit]({ v => k.toJsFn(v) }, js.undefined)
       }
     }
+
+    object instances {
+      implicit val catsInstances: cats.Monad[Async]  = new cats.Monad[Async] with cats.StackSafeMonad [Async] {
+        override def flatMap[A, B](fa: Async[A])(f: A => Async[B]): Async[B] = fa.flatMap(f)
+
+        override def pure[A](x: A): Async[A] = Async.point(x)
+        }
+      }
   }
 
-  def apply[R, M[_]: Monad, T](run: (T => M[Unit]) => M[R]) = new ContT(run)
+  def apply[R, M[_]: scalaz.Monad, T](run: (T => M[Unit]) => M[R]) = new ContT(run)
 
 }
