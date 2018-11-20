@@ -1,6 +1,8 @@
 package triggernz.reactnative
 package demo
 
+import java.net.URI
+
 import japgolly.scalajs.react._
 import org.scalajs.dom.ext.Color
 
@@ -20,6 +22,8 @@ import triggernz.reactnative.demo.PosError.RawError
 import triggernz.reactnative.external.vectoricons.Icon
 
 import scalajs.js
+
+import triggernz.reactnative.components.dimensions.DimValue._
 
 @js.native
 @JSImport("./images/scala.jpeg", JSImport.Namespace)
@@ -45,7 +49,9 @@ class Main(platform: RunningPlatform) {
         Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform))),
         Icon(Icon.Props("rocket", size = 30, color = Some(Color("#900")))),
         Text(Text.Props())(s.text.fold("fetching")(s => s)),
-        Image(Image.Props(Image.Source.FromRequire(scalaImage)))
+        Image(Image.Props(Image.Source.FromRequire(scalaImage))),
+        Image(Image.Props(Image.Source.FromUri(new URI("https://s3-ap-southeast-2.amazonaws.com/profile.ppets/1395/large/203331042656ca0dd2014403.76919395-profile-1395.gif"), 345.px, 350.px)))
+
       )
     }
 
