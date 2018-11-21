@@ -85,7 +85,7 @@ lazy val external = project
       )
     )
   .settings(commonSettings: _*)
-  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin).dependsOn(core)
 
 
 lazy val demo = project

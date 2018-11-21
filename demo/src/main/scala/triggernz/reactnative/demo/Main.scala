@@ -9,9 +9,8 @@ import org.scalajs.dom.ext.Color
 import scala.scalajs.js.annotation._
 import japgolly.scalajs.react.vdom.PackageBase._
 import components.builtin._
-import apis.builtin.Geolocation
 import cats.effect.IO
-import apis.builtin.{AlertIos, Geolocation, PermissionsAndroid}
+import apis.builtin.{AlertIos, PermissionsAndroid}
 import org.scalajs.dom.Position
 import org.scalajs.dom.raw.PositionError
 import scalaz.{-\/, \/, \/-}
@@ -22,8 +21,8 @@ import triggernz.reactnative.demo.PosError.RawError
 import triggernz.reactnative.external.vectoricons.Icon
 
 import scalajs.js
-
 import triggernz.reactnative.components.dimensions.DimValue._
+import triggernz.reactnative.external.geolocationservice.GeolocationService
 
 @js.native
 @JSImport("./images/scala.jpeg", JSImport.Namespace)
@@ -82,7 +81,7 @@ class Main(platform: RunningPlatform) {
       p <- PermissionsAndroid.request(PermissionsAndroid.Permission.AccessFineLocation)
       loc <-
         if (p == PermissionsAndroid.Result.Granted)
-          Geolocation.watchPosition().map(_.leftMap(PosError.RawError)).voidR
+          GeolocationService().watchPosition().map(_.leftMap(PosError.RawError)).voidR
         else
           Async.point(Left(PosError.NoPermission))
     } yield loc
