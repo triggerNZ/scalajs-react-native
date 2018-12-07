@@ -40,15 +40,7 @@ object View {
     def toJs: JsProps = {
       val jso = new js.Object().asInstanceOf[JsProps]
       style.foreach { s =>
-        val jss = new js.Object().asInstanceOf[JsStyle]
-        s.height.foreach(h => jss.height = h.toReactNativeStyle)
-        s.width.foreach(w => jss.width = w.toReactNativeStyle)
-        s.backgroundColor.foreach(c => jss.backgroundColor = c.toString)
-        s.flex.foreach(f => jss.flex = f.n)
-        s.flexDirection.foreach(fd => jss.flexDirection = fd.str)
-        s.padding.foreach(p => jss.padding = p.toReactNativeStyle)
-        s.margin.foreach(m => jss.margin = m.toReactNativeStyle)
-        jso.style = jss
+        jso.style = s.toJs
       }
       jso
     }
@@ -63,7 +55,19 @@ object View {
                       flexDirection: Option[Direction] = None,
                       padding: Option[DimValue] = None,
                       margin: Option[DimValue] = None
-                    )
+                    ) {
+      def toJs: JsStyle = {
+        val jss = new js.Object().asInstanceOf[JsStyle]
+        height.foreach(h => jss.height = h.toReactNativeStyle)
+        width.foreach(w => jss.width = w.toReactNativeStyle)
+        backgroundColor.foreach(c => jss.backgroundColor = c.toString)
+        flex.foreach(f => jss.flex = f.n)
+        flexDirection.foreach(fd => jss.flexDirection = fd.str)
+        padding.foreach(p => jss.padding = p.toReactNativeStyle)
+        margin.foreach(m => jss.margin = m.toReactNativeStyle)
+        jss
+      }
+    }
   }
 
   def apply(p: Props)(children: VdomNode*) = Component(p)(children: _*)

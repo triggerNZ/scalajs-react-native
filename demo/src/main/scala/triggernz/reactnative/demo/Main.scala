@@ -15,7 +15,7 @@ import org.scalajs.dom.Position
 import org.scalajs.dom.raw.PositionError
 import scalaz.{-\/, \/, \/-}
 import triggernz.reactnative.core.ContT._
-import triggernz.reactnative.core.Platform
+import triggernz.reactnative.core.{Platform, Stylesheet}
 import triggernz.reactnative.core.Platform.RunningPlatform
 import triggernz.reactnative.demo.PosError.RawError
 import triggernz.reactnative.external.vectoricons.Icon
@@ -58,6 +58,10 @@ class Main(platform: RunningPlatform) {
       case -\/(RawError(e)) => println(s"error: ${e.message}"); $.modState(_.copy(position = None))
       case -\/(PosError.NoPermission) => println(s"No location permissions!"); $.modState(_.copy(position = None))
       case \/-(p) => $.modState(_.copy(position = Some(p)))
+    }
+
+    def printStylesheet: Callback = Callback {
+      println(Stylesheet.RawComponent.create(View.Props.Style(width = Some(100.px)).toJs))
     }
 
     def fetchJson: Callback = {
