@@ -7,6 +7,7 @@ import japgolly.scalajs.react.CallbackTo
 import scalaz.syntax.monad._
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
+import scalaz.{Kleisli, Monad}
 
 import scala.scalajs.js.{Thenable, |}
 
@@ -23,6 +24,11 @@ class ContT[R, M[_], +A](val run: (A => M[Unit]) => M[R])(implicit M: scalaz.Mon
     ContT[R, M, B](z => apply(z compose k))
 
   def voidR: ContT[Unit, M, A] = new ContT[Unit, M, A] (run.andThen(M.void))
+
+  def flatMapR[S](f: R => M[S])(implicit M: Monad[M]): ContT[S, M, A] = {
+    val k = Kleisli(run).andThen(Kleisli(f))
+    new ContT(k.run)
+  }
 }
 
 object ContT {

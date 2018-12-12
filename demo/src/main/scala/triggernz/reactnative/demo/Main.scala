@@ -14,6 +14,7 @@ import apis.builtin.{AlertIos, PermissionsAndroid}
 import org.scalajs.dom.Position
 import org.scalajs.dom.raw.PositionError
 import scalaz.{-\/, \/, \/-}
+import triggernz.reactnative.apis.builtin.Geolocation.WatchId
 import triggernz.reactnative.core.ContT._
 import triggernz.reactnative.core.{Platform, Stylesheet}
 import triggernz.reactnative.core.Platform.RunningPlatform
@@ -24,12 +25,14 @@ import scalajs.js
 import triggernz.reactnative.components.dimensions.DimValue._
 import triggernz.reactnative.external.geolocationservice.GeolocationService
 
+import ScalazReact.reactCallbackScalazInstance
+
 @js.native
 @JSImport("./images/scala.jpeg", JSImport.Namespace)
 object scalaImage extends js.Object
 
 class Main(platform: RunningPlatform) {
-  case class State(spinning: Boolean, position: Option[org.scalajs.dom.Position], text: Option[String]) {
+  case class State(spinning: Boolean, position: Option[org.scalajs.dom.Position], text: Option[String], watchId: Option[WatchId]) {
     def toggleSpin: State = copy(spinning = !spinning)
   }
 
@@ -42,7 +45,7 @@ class Main(platform: RunningPlatform) {
         Button(Button.Props(title, colour, $.modState(_.toggleSpin))),
         ActivityIndicator(ActivityIndicator.Props(animating = s.spinning, size = ActivityIndicator.Size.Large)),
         Text(Text.Props(Text.Style(color = Color.Green, fontSize = 34)))("I am green, and big", Text(Text.Props(Text.Style(color = Color.Blue, fontWeight = FontWeight.Bold)))(" but I am nested and bold and blue")),
-        Text(Text.Props(Text.Style()))(s.position.fold("No location found") {pos => s"Location is ${pos.coords.latitude}, ${pos.coords.longitude}"}),
+        Text(Text.Props(Text.Style()))(s.position.fold("No location found") { pos => s"Location is ${pos.coords.latitude}, ${pos.coords.longitude}" }),
         Text(Text.Props(Text.Style()))(s.text.fold("fetching")(s => s)),
         Text(Text.Props(Text.Style()))(s"Platform is ${platform}"),
         Button(Button.Props("Show IOS alert", Color.Red, AlertIos.alert("Hello, World", None).toCallbackOrEmpty(platform))),
@@ -60,6 +63,13 @@ class Main(platform: RunningPlatform) {
       case \/-(p) => $.modState(_.copy(position = Some(p)))
     }
 
+    def stopGps: Callback = for {
+      s <- $.state
+      _ <- s.watchId.fold(Callback.empty) { wid =>
+        GeolocationService().clearWatch(wid)
+      }
+    } yield ()
+
     def printStylesheet: Callback = Callback {
       println(Stylesheet.RawComponent.create(View.Props.Style(width = Some(100.px)).toJs))
     }
@@ -73,31 +83,33 @@ class Main(platform: RunningPlatform) {
       AsyncE.fromIO(Hammock
         .request(Method.GET, uri"https://jsonplaceholder.typicode.com/todos/1", Map.empty)
         .exec[IO]) {
-          case Right(r) => $.modState(_.copy(text = Some(r.entity.content.toString)))
-          case Left(f) => $.modState(_.copy(text = Some(f.getMessage)))
-        }
+        case Right(r) => $.modState(_.copy(text = Some(r.entity.content.toString)))
+        case Left(f) => $.modState(_.copy(text = Some(f.getMessage)))
+      }
     }
+
+    def watchLocation: AsyncE[PosError, Position] = {
+      import cats.syntax.either._
+      for {
+        p <- PermissionsAndroid.request(PermissionsAndroid.Permission.AccessFineLocation)
+        loc <-
+          if (p == PermissionsAndroid.Result.Granted)
+            GeolocationService().watchPosition().map(_.leftMap(PosError.RawError)).flatMapR(wid => $.modState(_.copy(watchId = Some(wid))))
+          else
+            Async.point(Left(PosError.NoPermission))
+      } yield loc
+    }
+
   }
-
-  def watchLocation: AsyncE[PosError, Position] = {
-    import cats.syntax.either._
-    for {
-      p <- PermissionsAndroid.request(PermissionsAndroid.Permission.AccessFineLocation)
-      loc <-
-        if (p == PermissionsAndroid.Result.Granted)
-          GeolocationService().watchPosition().map(_.leftMap(PosError.RawError)).voidR
-        else
-          Async.point(Left(PosError.NoPermission))
-    } yield loc
-  }
-
-
   val scalaNativeApp = ScalaComponent.builder[Unit]("App")
-    .initialState(State(true, None, None))
+    .initialState(State(true, None, None, None))
     .renderBackend[Backend]
     .componentDidMount {c =>
         c.backend.startGps >>
         c.backend.fetchJson
+    }
+    .componentWillUnmount { c =>
+      c.backend.stopGps
     }
     .build
 
