@@ -1,10 +1,11 @@
 package triggernz.reactnative.components.builtin
 
+import japgolly.scalajs.react.component.Js.{RawMounted, UnmountedWithRawType}
 import japgolly.scalajs.react.{Children, JsComponent}
 import japgolly.scalajs.react.vdom.VdomNode
 import org.scalajs.dom.ext.Color
 import triggernz.reactnative.components.dimensions.DimValue
-import triggernz.reactnative.flex.{Direction, Flex}
+import triggernz.reactnative.flex.{AlignItems, Direction, Flex, JustifyContent}
 
 import scala.scalajs.js
 import scala.scalajs.js.{UndefOr, |}
@@ -33,6 +34,10 @@ object View {
     var flexDirection: UndefOr[String]
     var padding: UndefOr[Int | String]
     var margin: UndefOr[Int | String]
+    var justifyContent: UndefOr[String]
+    var alignItems: UndefOr[String]
+    var borderColor: UndefOr[String]
+    var borderWidth: UndefOr[Int]
   }
 
 
@@ -47,6 +52,8 @@ object View {
   }
 
   object Props {
+    case class Border(width: Int, color: Color)
+
     case class Style(
                       width: Option[DimValue] = None,
                       height: Option[DimValue] = None,
@@ -54,7 +61,10 @@ object View {
                       flex: Option[Flex] = None,
                       flexDirection: Option[Direction] = None,
                       padding: Option[DimValue] = None,
-                      margin: Option[DimValue] = None
+                      margin: Option[DimValue] = None,
+                      justifyContent: Option[JustifyContent] = None,
+                      alignItems: Option[AlignItems] = None,
+                      border: Option[Border] = None
                     ) {
       def toJs: JsStyle = {
         val jss = new js.Object().asInstanceOf[JsStyle]
@@ -65,10 +75,20 @@ object View {
         flexDirection.foreach(fd => jss.flexDirection = fd.str)
         padding.foreach(p => jss.padding = p.toReactNativeStyle)
         margin.foreach(m => jss.margin = m.toReactNativeStyle)
+        justifyContent.foreach(jc => jss.justifyContent = jc.str)
+        alignItems.foreach(ai => jss.alignItems = ai.str)
+        border.foreach { b =>
+          jss.borderWidth = b.width
+          jss.borderColor = b.color.toString()
+        }
         jss
       }
     }
   }
 
-  def apply(p: Props)(children: VdomNode*) = Component(p)(children: _*)
+  def apply(children: VdomNode*): UnmountedWithRawType[JsProps, Null, RawMounted[JsProps, Null]] =
+    apply(Props())(children: _*)
+
+  def apply(p: Props)(children: VdomNode*): UnmountedWithRawType[JsProps, Null, RawMounted[JsProps, Null]] =
+    Component(p)(children: _*)
 }

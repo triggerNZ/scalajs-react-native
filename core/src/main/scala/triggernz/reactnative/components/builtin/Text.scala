@@ -1,5 +1,6 @@
 package triggernz.reactnative.components.builtin
 
+import japgolly.scalajs.react.component.Js.{RawMounted, UnmountedWithRawType}
 import japgolly.scalajs.react.{Children, JsComponent}
 import japgolly.scalajs.react.vdom.VdomNode
 import org.scalajs.dom.ext.Color
@@ -44,5 +45,10 @@ object Text {
     var fontWeight: String
     var fontSize: Int
   }
-  def apply(p: Props)(children: VdomNode*) = Component(p)(children: _*)
+
+  def apply(children: VdomNode*): UnmountedWithRawType[JsProps, Null, RawMounted[JsProps, Null]] =
+    apply(Props())(children: _*)
+
+  def apply(p: Props)(children: VdomNode*): UnmountedWithRawType[JsProps, Null, RawMounted[JsProps, Null]] =
+    Component(p)(children: _*)
 }
