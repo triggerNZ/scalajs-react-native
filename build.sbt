@@ -103,3 +103,20 @@ lazy val demo = project
   .settings(commonSettings: _*)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .dependsOn(core, external)
+
+lazy val shoutem = project
+  .settings(
+    npmDependencies in Compile ++= Seq(
+      // requires: `react-native link react-native-vector-icons`
+      "@shoutem/ui" -> "0.23.9",
+      "@shoutem/theme" -> "0.11.1",
+      "@shoutem/animation" -> "0.12.2"
+    )
+  )
+  .settings(commonSettings: _*)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin).dependsOn(core)
+
+
+  .settings(commonSettings: _*)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .dependsOn(core)
